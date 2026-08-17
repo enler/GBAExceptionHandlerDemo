@@ -1,5 +1,7 @@
 # GBA Exception Handler Demo
 
+**中文（主文档）** | [English](README.en.md)
+
 这是一个面向真实 GBA/ARM7TDMI 异常路径的演示 ROM。启动后会自动执行四项测试，并在 Mode 3 画面中显示 `PASS/FAIL`；按 `A` 可重新执行。
 
 它包含：
@@ -64,19 +66,19 @@ GBA 的物理异常向量位于只读 BIOS，卡带程序不能像普通裸机�
 ## 异常链路
 
 ```text
-ARM/Thumb undefined opcode
-    -> CPU Undefined vector 0x00000004
-    -> GBA BIOS debug trampoline
-       saves SPSR/CPSR/r12/LR at 0x03007FE0..0x03007FEC
-    -> cartridge 0x09FFC000
-    -> cartridge fixed entry in ROM
+ARM/Thumb 未定义指令
+    -> CPU Undefined 异常向量 0x00000004
+    -> GBA BIOS 调试转发入口
+       在 0x03007FE0..0x03007FEC 保存 SPSR/CPSR/r12/LR
+    -> 卡带地址 0x09FFC000
+    -> ROM 中的卡带固定入口
     -> rom_exception_entry
-    -> ROM exception_dispatch
-       normal trap: emulate/dispatch, then resume after opcode
-       hook trap:   replace r0 and exception return target with caller LR
-       unknown trap: retain snapshot and stop in ROM
-    -> return to BIOS
-    -> BIOS restores CPSR and registers
+    -> ROM 中的 exception_dispatch
+       普通 trap：模拟或分派后，从下一条指令继续
+       hook trap：替换 r0，并把异常返回目标改为调用者 LR
+       未识别 trap：保留现场并停在 ROM 循环
+    -> 返回 BIOS
+    -> BIOS 恢复 CPSR 和寄存器
 ```
 
 IRQ 走另一条标准路径：VBlank IRQ 经 BIOS 转发到 `0x03007FFC` 中登记的 ROM 函数 `rom_irq_handler`。handler 清除 `IF`，并同步更新 `0x03007FF8` 的 BIOS IRQ flags，兼容 `IntrWait/VBlankIntrWait` 约定。
